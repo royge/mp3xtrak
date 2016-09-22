@@ -3,7 +3,7 @@ Extract mp3 audio from mp4 files.
 
 Pre-requisites
 --------------
-This tool currently uses ffmpeg to do the actual work.
+This tool currently uses [ffmpeg](https://www.ffmpeg.org/) to do the actual work.
 
 **NOTE:** Only tested on *Ubuntu 16.04 LTS* and *Python 3*
 ```
