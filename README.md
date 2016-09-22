@@ -5,7 +5,7 @@ Pre-requisites
 --------------
 This tool currently uses ffmpeg to do the actual work.
 
-NOTE: Only tested on Ubuntu 16.04 LTS
+**NOTE:** Only tested on *Ubuntu 16.04 LTS* and *Python 3*
 ```
 sudo apt-get install ffmpeg
 ```
