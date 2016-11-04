@@ -14,6 +14,7 @@ Installation
 ```
 git clone https://github.com/r0y3/mp3xtrak.git
 cd mp3xtrak
+sudo chmod u+x main.py
 ```
 
 Configuration
