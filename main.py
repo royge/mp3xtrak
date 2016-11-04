@@ -5,6 +5,7 @@ import multiprocessing
 import subprocess
 import glob
 import re
+import argparse
 
 from threading import Thread
 from queue import Queue
@@ -61,13 +62,19 @@ class Scanner():
 
 
 def main():
+    parser = argparse.ArgumentParser(description='Extract mp3 from mp4 videos.')
+    parser.add_argument('--mp4dir', default=MP4_DIR, help='MP4 directory')
+    parser.add_argument('--mp3dir', default=MP3_DIR, help='MP3 directory')
+
+    args = parser.parse_args()
+
     queue = Queue()
 
     scanner = Scanner(queue)
-    scanner.scan(MP4_DIR)
+    scanner.scan(args.mp4dir)
 
     for i in range(multiprocessing.cpu_count()):
-        worker = Worker(Extractor(queue, MP3_DIR))
+        worker = Worker(Extractor(queue, args.mp3dir))
         worker.daemon = True
         worker.start()
 
