@@ -4,8 +4,10 @@ import (
 	"flag"
 	"log"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
+	"strings"
 )
 
 // Scan list the files from directory.
@@ -29,13 +31,31 @@ func Scan(dir string, c chan string) error {
 }
 
 // Extract get mp3 audio for video file.
-func Extract(c chan<- string, dir string) error {
+func Extract(c chan string, command, dir string) error {
+	cmd := exec.Command(command)
+	defer cmd.Process.Kill()
+
+	for s := range c {
+		if s != "" {
+			ext := filepath.Ext(s)
+			out := path.Join(
+				dir,
+				strings.Replace(filepath.Base(s), ext, ".mp3", 1),
+			)
+			cmd.Args = []string{"-i", s, out}
+			if err := cmd.Run(); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
 func main() {
 	s := flag.String("s", "", "Source directory.")
 	// o := flag.String("o", "", "Output directory.")
+	c := make(chan string)
 
 	flag.Parse()
 

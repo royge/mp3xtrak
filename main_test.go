@@ -7,7 +7,9 @@ import (
 	"testing"
 )
 
-func TestScan(t *testing.T) {
+func TestScanBuffered(t *testing.T) {
+	t.Parallel()
+
 	dir, err := ioutil.TempDir("", "")
 	if err != nil {
 		t.Fatalf("error creating temp directory: %v", err)
@@ -44,6 +46,45 @@ func TestScan(t *testing.T) {
 	}
 }
 
-func TestExtract(t *testing.T) {
+func TestScanUnbuffered(t *testing.T) {
+	t.Parallel()
 
+	dir, err := ioutil.TempDir("", "")
+	if err != nil {
+		t.Fatalf("error creating temp directory: %v", err)
+	}
+	c := make(chan string)
+	// defer close(c)
+
+	expected := []string{}
+	actual := []string{}
+
+	for i := 0; i < 5; i++ {
+		f, _ := ioutil.TempFile(dir, "")
+		expected = append(expected, f.Name())
+	}
+
+	go func() {
+		if err := Scan(dir, c); err != nil {
+			t.Fatalf("error scanning directory: %v", err)
+		}
+		close(c)
+	}()
+
+	for s := range c {
+		if s != "" {
+			actual = append(actual, s)
+		}
+	}
+
+	sort.Strings(expected)
+	sort.Strings(actual)
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Errorf("expected to be equal, got %v and %v", expected, actual)
+	}
+}
+
+func TestExtract(t *testing.T) {
+	t.Parallel()
 }
