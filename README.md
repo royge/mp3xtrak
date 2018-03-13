@@ -18,7 +18,7 @@ sudo apt-get install ffmpeg
 2. Install `mp3xtrak`
 
 ```
-$ go get https://github.com/royge/mp3xtrak.git
+$ go get github.com/royge/mp3xtrak
 ```
 
 3. Install from source
