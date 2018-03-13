@@ -32,9 +32,6 @@ func Scan(dir string, c chan string) error {
 
 // Extract get mp3 audio for video file.
 func Extract(c chan string, command, dir string) error {
-	cmd := exec.Command(command)
-	defer cmd.Process.Kill()
-
 	for s := range c {
 		if s != "" {
 			ext := filepath.Ext(s)
@@ -42,10 +39,14 @@ func Extract(c chan string, command, dir string) error {
 				dir,
 				strings.Replace(filepath.Base(s), ext, ".mp3", 1),
 			)
+			cmd := exec.Command(command)
 			cmd.Args = []string{"-i", s, out}
+
 			if err := cmd.Run(); err != nil {
 				return err
 			}
+
+			cmd.Process.Kill()
 		}
 	}
 
