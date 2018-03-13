@@ -1,24 +1,29 @@
 package main
 
 import (
+	"bytes"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 // Scan list the files from directory.
-func Scan(dir string, c chan string) error {
+func Scan(dir string, c chan string, exts string) error {
 	err := filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
 		if !info.IsDir() {
-			c <- path.Join(dir, info.Name())
+			if strings.ContainsAny(info.Name(), exts) {
+				c <- path.Join(dir, info.Name())
+			}
 		}
 
 		return nil
@@ -31,28 +36,32 @@ func Scan(dir string, c chan string) error {
 }
 
 // Extract get mp3 audio for video file.
-func Extract(c chan string, command, dir string) error {
-	for s := range c {
-		if s != "" {
-			ext := filepath.Ext(s)
-			name := filepath.Base(s)
+func Extract(s string, command, dir string) error {
+	if s != "" {
+		s = strings.Replace(s, " ", "\\ ", -1)
+		s = strings.Replace(s, "(", "\\(", -1)
+		s = strings.Replace(s, ")", "\\)", -1)
+		ext := filepath.Ext(s)
+		name := filepath.Base(s)
 
-			if ext != "" {
-				name = strings.Replace(name, ext, ".mp3", 1)
-			}
+		if ext != "" {
+			name = strings.Replace(name, ext, ".mp3", 1)
+		}
 
-			out := path.Join(
-				dir,
-				name,
-			)
-			cmd := exec.Command(command)
-			cmd.Args = []string{"-i", s, out}
+		p := path.Join(
+			dir,
+			name,
+		)
+		cmd := exec.Command(command, "-i", s, p)
 
-			if err := cmd.Run(); err != nil {
-				return err
-			}
+		var out bytes.Buffer
+		var stderr bytes.Buffer
+		cmd.Stdout = &out
+		cmd.Stderr = &stderr
 
-			cmd.Process.Kill()
+		if err := cmd.Run(); err != nil {
+			fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
+			return err
 		}
 	}
 
@@ -66,14 +75,29 @@ func main() {
 
 	flag.Parse()
 
+	var wg sync.WaitGroup
+
 	go func() {
-		if err := Scan(*s, c); err != nil {
+		if err := Scan(*s, c, ".mp4 | .mov"); err != nil {
 			log.Fatalf("error scanning directory: %v", err)
 		}
+
+		wg.Wait()
 		close(c)
 	}()
 
-	if err := Extract(c, "ffmpeg", *o); err != nil {
-		log.Fatalf("error extracting audio: %v", err)
+	for x := range c {
+		wg.Add(1)
+		go func(s string) {
+			fmt.Printf("\nExtracting audio from %s...", s)
+			if err := Extract(s, "ffmpeg", *o); err != nil {
+				log.Fatalf("error extracting audio: %v", err)
+			}
+
+			fmt.Printf("\n%s Done!", s)
+			wg.Done()
+		}(x)
 	}
+
+	fmt.Print("\n")
 }

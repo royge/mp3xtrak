@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"sort"
+	"sync"
 	"testing"
 )
 
@@ -24,12 +25,12 @@ func TestScanBuffered(t *testing.T) {
 	actual := []string{}
 
 	for i := 0; i < 5; i++ {
-		f, _ := ioutil.TempFile(dir, "")
+		f, _ := ioutil.TempFile(dir, "test.")
 		expected = append(expected, f.Name())
 	}
 
 	go func() {
-		if err := Scan(dir, c); err != nil {
+		if err := Scan(dir, c, "test"); err != nil {
 			t.Fatalf("error scanning directory: %v", err)
 		}
 		close(c)
@@ -62,13 +63,13 @@ func TestScanUnbuffered(t *testing.T) {
 	actual := []string{}
 
 	for i := 0; i < 5; i++ {
-		f, _ := ioutil.TempFile(dir, "")
+		f, _ := ioutil.TempFile(dir, "test.")
 		expected = append(expected, f.Name())
 		f.Close()
 	}
 
 	go func() {
-		if err := Scan(dir, c); err != nil {
+		if err := Scan(dir, c, "test"); err != nil {
 			t.Fatalf("error scanning directory: %v", err)
 		}
 		close(c)
@@ -105,21 +106,31 @@ func TestExtract(t *testing.T) {
 	src := []string{}
 
 	for i := 0; i < 5; i++ {
-		f, _ := ioutil.TempFile(dir, "")
+		f, _ := ioutil.TempFile(dir, "test")
 		f.Close()
 		src = append(src, f.Name())
 	}
 
+	var wg sync.WaitGroup
+
 	go func() {
-		if err := Scan(dir, c); err != nil {
+		if err := Scan(dir, c, "test"); err != nil {
 			t.Fatalf("error scanning directory: %v", err)
 		}
+
+		wg.Wait()
 		close(c)
 	}()
 
-	// we use `cp` command instead of `ffmpeg`
-	if err := Extract(c, "cp", outDir); err != nil {
-		t.Fatalf("expected no error, got %v", err)
+	for s := range c {
+		wg.Add(1)
+		go func(s string) {
+			// we use `cp` command instead of `ffmpeg`
+			if err := Extract(s, "cp", outDir); err != nil {
+				t.Fatalf("expected no error, got %v", err)
+			}
+			wg.Done()
+		}(s)
 	}
 
 	dst := []string{}
