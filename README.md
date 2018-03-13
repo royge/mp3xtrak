@@ -32,7 +32,6 @@ $ go build -o mp3xtrak
 
 ## How to Use
 
-Then execute the main.py
 ```
-./mp3xtrak -s=<your-mp4-directory> -o=<your-music-directory>
+mp3xtrak -s=<your-mp4-directory> -o=<your-music-directory>
 ```
