@@ -35,9 +35,15 @@ func Extract(c chan string, command, dir string) error {
 	for s := range c {
 		if s != "" {
 			ext := filepath.Ext(s)
+			name := filepath.Base(s)
+
+			if ext != "" {
+				name = strings.Replace(name, ext, ".mp3", 1)
+			}
+
 			out := path.Join(
 				dir,
-				strings.Replace(filepath.Base(s), ext, ".mp3", 1),
+				name,
 			)
 			cmd := exec.Command(command)
 			cmd.Args = []string{"-i", s, out}
@@ -55,7 +61,7 @@ func Extract(c chan string, command, dir string) error {
 
 func main() {
 	s := flag.String("s", "", "Source directory.")
-	// o := flag.String("o", "", "Output directory.")
+	o := flag.String("o", "", "Output directory.")
 	c := make(chan string)
 
 	flag.Parse()
@@ -66,4 +72,8 @@ func main() {
 		}
 		close(c)
 	}()
+
+	if err := Extract(c, "ffmpeg", *o); err != nil {
+		log.Fatalf("error extracting audio: %v", err)
+	}
 }

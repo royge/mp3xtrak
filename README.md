@@ -1,33 +1,38 @@
 # mp3xtrak
+
 Extract mp3 audio from mp4 files.
 
-Pre-requisites
---------------
+## Pre-requisites
+
 This tool currently uses [ffmpeg](https://www.ffmpeg.org/) to do the actual work.
 
-**NOTE:** Only tested on *Ubuntu 16.04 LTS* and *Python 3*
+**NOTE:** Only tested on *Ubuntu 16.04 LTS*
 ```
 sudo apt-get install ffmpeg
 ```
-Installation
-------------
+
+## Installation
+
+1. Install [go](https://golang.org)
+
+2. Install `mp3xtrak`
+
 ```
-git clone https://github.com/royge/mp3xtrak.git
-cd mp3xtrak
-sudo chmod u+x main.py
+$ go get https://github.com/royge/mp3xtrak.git
 ```
 
-Configuration
--------------
-Modify settings.py and set the following accordingly.
-```python
-MP4_DIR='<your mp4 directory>'
-MP3_DIR='<your target directory for mp3 files>'
+3. Install from source
+
+
+```
+$ git clone https://github.com/royge/mp3xtrak.git
+$ cd mp3xtrak
+$ go build -o mp3xtrak
 ```
 
-Run
----
+## How to Use
+
 Then execute the main.py
 ```
-./main.py
+./mp3xtrak -s=<your-mp4-directory> -o=<your-music-directory>
 ```
