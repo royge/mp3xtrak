@@ -68,6 +68,7 @@ func Extract(s string, command, dir string) error {
 func main() {
 	s := flag.String("s", "", "Source directory.")
 	o := flag.String("o", "", "Output directory.")
+	x := flag.String("x", ".mp4 | .mov", "Video files extensions.")
 	c := make(chan string)
 
 	flag.Parse()
@@ -75,7 +76,7 @@ func main() {
 	var wg sync.WaitGroup
 
 	go func() {
-		if err := Scan(*s, c, ".mp4 | .mov"); err != nil {
+		if err := Scan(*s, c, *x); err != nil {
 			log.Fatalf("error scanning directory: %v", err)
 		}
 
@@ -83,7 +84,7 @@ func main() {
 		close(c)
 	}()
 
-	for x := range c {
+	for v := range c {
 		wg.Add(1)
 		go func(s string) {
 			fmt.Printf("\nExtracting audio from %s...", s)
@@ -93,7 +94,7 @@ func main() {
 				fmt.Printf("\n%s Done!", s)
 			}
 			wg.Done()
-		}(x)
+		}(v)
 	}
 
 	fmt.Print("\n")
