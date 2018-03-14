@@ -15,20 +15,22 @@ sudo apt-get install ffmpeg
 
 1. Install [go](https://golang.org)
 
-2. Install `mp3xtrak`
+1. Install `mp3xtrak`
 
-```
-$ go get github.com/royge/mp3xtrak
-```
+	**A. Using `go get`**
 
-3. Install from source
+	```
+	$ go get github.com/royge/mp3xtrak
+	```
 
+	**B. From source**
 
-```
-$ git clone https://github.com/royge/mp3xtrak.git
-$ cd mp3xtrak
-$ go build -o mp3xtrak
-```
+	```
+	$ git clone https://github.com/royge/mp3xtrak.git
+	$ cd mp3xtrak
+	$ go build -o mp3xtrak
+	$ go install
+	```
 
 ## How to Use
 
