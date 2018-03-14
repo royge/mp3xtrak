@@ -44,5 +44,5 @@ B. Mac
 ## How to Use
 
 ```
-mp3xtrak -s=<your-mp4-directory> -o=<your-music-directory>
+$ mp3xtrak -s=<your-mp4-directory> -o=<your-music-directory>
 ```

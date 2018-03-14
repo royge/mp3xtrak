@@ -20,10 +20,8 @@ func Scan(dir string, c chan string, exts string) error {
 			return err
 		}
 
-		if !info.IsDir() {
-			if strings.ContainsAny(info.Name(), exts) {
-				c <- path.Join(dir, info.Name())
-			}
+		if !info.IsDir() && strings.ContainsAny(info.Name(), exts) {
+			c <- path.Join(dir, info.Name())
 		}
 
 		return nil
@@ -66,12 +64,18 @@ func Extract(s string, command, dir string) error {
 }
 
 func main() {
-	s := flag.String("s", "", "Source directory.")
-	o := flag.String("o", "", "Output directory.")
+	s := flag.String("s", "", "Source directory. (Ex. -s=~/Videos)")
+	o := flag.String("o", "", "Output directory. (Ex. -o=~/Music)")
 	x := flag.String("x", ".mp4 | .mov", "Video files extensions.")
+
 	c := make(chan string)
 
 	flag.Parse()
+
+	if *s == "" && *o == "" {
+		fmt.Println("Source and output directory are required. Type `mp3xtrak -h` for help.")
+		return
+	}
 
 	var wg sync.WaitGroup
 
