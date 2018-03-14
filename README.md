@@ -6,10 +6,19 @@ Extract mp3 audio from mp4 files.
 
 This tool currently uses [ffmpeg](https://www.ffmpeg.org/) to do the actual work.
 
-**NOTE:** Only tested on *Ubuntu 16.04 LTS*
-```
-sudo apt-get install ffmpeg
-```
+**NOTE:** Only tested on *Ubuntu 16.04 LTS* and *MacOS Sierra*
+
+A. Ubuntu
+
+	```
+	sudo apt-get install ffmpeg
+	```
+
+B. Mac
+
+	```
+	$ brew install ffmpeg
+	```
 
 ## Installation
 
