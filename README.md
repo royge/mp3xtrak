@@ -10,13 +10,13 @@ This tool currently uses [ffmpeg](https://www.ffmpeg.org/) to do the actual work
 
 A. Ubuntu
 
-	```bash
+	```
 	$ sudo apt-get install ffmpeg
 	```
 
 B. Mac
 
-	```bash
+	```
 	$ brew install ffmpeg
 	```
 
