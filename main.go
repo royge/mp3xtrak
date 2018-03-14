@@ -54,14 +54,11 @@ func Extract(s string, command, dir string) error {
 		)
 		cmd := exec.Command(command, "-i", s, p)
 
-		var out bytes.Buffer
 		var stderr bytes.Buffer
-		cmd.Stdout = &out
 		cmd.Stderr = &stderr
 
 		if err := cmd.Run(); err != nil {
-			fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
-			return err
+			return fmt.Errorf("%v: %s", err, stderr.String())
 		}
 	}
 
@@ -91,10 +88,10 @@ func main() {
 		go func(s string) {
 			fmt.Printf("\nExtracting audio from %s...", s)
 			if err := Extract(s, "ffmpeg", *o); err != nil {
-				log.Fatalf("error extracting audio: %v", err)
+				fmt.Printf("\nerror extracting audio: %v", err)
+			} else {
+				fmt.Printf("\n%s Done!", s)
 			}
-
-			fmt.Printf("\n%s Done!", s)
 			wg.Done()
 		}(x)
 	}
