@@ -1,5 +1,7 @@
 # mp3xtrak
 
+[![Build Status](https://travis-ci.org/royge/mp3xtrak.svg?branch=master)](https://travis-ci.org/royge/mp3xtrak)
+
 Extract mp3 audio from mp4 files.
 
 ## Pre-requisites
