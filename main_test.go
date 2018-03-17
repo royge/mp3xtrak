@@ -30,7 +30,7 @@ func TestScanBuffered(t *testing.T) {
 	}
 
 	go func() {
-		if err := Scan(dir, c, "test"); err != nil {
+		if err := scan(dir, c, "test"); err != nil {
 			t.Fatalf("error scanning directory: %v", err)
 		}
 		close(c)
@@ -69,7 +69,7 @@ func TestScanUnbuffered(t *testing.T) {
 	}
 
 	go func() {
-		if err := Scan(dir, c, "test"); err != nil {
+		if err := scan(dir, c, "test"); err != nil {
 			t.Fatalf("error scanning directory: %v", err)
 		}
 		close(c)
@@ -114,7 +114,7 @@ func TestExtract(t *testing.T) {
 	var wg sync.WaitGroup
 
 	go func() {
-		if err := Scan(dir, c, "test"); err != nil {
+		if err := scan(dir, c, "test"); err != nil {
 			t.Fatalf("error scanning directory: %v", err)
 		}
 
@@ -126,7 +126,7 @@ func TestExtract(t *testing.T) {
 		wg.Add(1)
 		go func(s string) {
 			// we use `cp` command instead of `ffmpeg`
-			if err := Extract(s, "cp", outDir); err != nil {
+			if err := extract(s, "cp", outDir); err != nil {
 				t.Fatalf("expected no error, got %v", err)
 			}
 			wg.Done()
@@ -152,5 +152,27 @@ func TestExtract(t *testing.T) {
 
 	if len(src) != len(dst) {
 		t.Fatalf("expected to be equal, got %v and %v", len(src), len(dst))
+	}
+}
+
+func TestEscape(t *testing.T) {
+	tt := []struct {
+		text    string
+		escaped string
+	}{
+		{
+			text:    " ()!$&'*,;<=>?[]^`{}|~",
+			escaped: "\\ \\(\\)\\!\\$\\&\\'\\*\\,\\;\\<\\=\\>\\?\\[\\]\\^\\`\\{\\}\\|\\~",
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.text, func(t *testing.T) {
+			escaped := escape(tc.text)
+
+			if escaped != tc.escaped {
+				t.Fatalf("expected escaped text to be %s, got %s", tc.escaped, escaped)
+			}
+		})
 	}
 }
