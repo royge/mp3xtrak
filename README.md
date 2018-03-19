@@ -12,15 +12,11 @@ This tool currently uses [ffmpeg](https://www.ffmpeg.org/) to do the actual work
 
 A. Ubuntu
 
-	```
 	$ sudo apt-get install ffmpeg
-	```
 
 B. Mac
 
-	```
 	$ brew install ffmpeg
-	```
 
 ## Installation
 
