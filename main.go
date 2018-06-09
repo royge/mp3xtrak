@@ -18,7 +18,7 @@ func main() {
 	o := flag.String("o", "", "Output directory. (Ex. -o=~/Music)")
 	x := flag.String("x", ".mp4 | .mov", "Video files extensions.")
 
-	c := make(chan string)
+	c := make(chan string, 4)
 
 	flag.Parse()
 
@@ -30,7 +30,7 @@ func main() {
 	var wg sync.WaitGroup
 
 	go func() {
-		if err := scan(*s, c, *x); err != nil {
+		if err := scan(&wg, *s, c, *x); err != nil {
 			log.Fatalf("error scanning directory: %v", err)
 		}
 
@@ -39,28 +39,27 @@ func main() {
 	}()
 
 	for v := range c {
-		wg.Add(1)
 		go func(s string) {
 			fmt.Printf("\nextracting audio from %s...", s)
-			if err := extract(s, "ffmpeg", *o); err != nil {
+			if err := extract(&wg, s, "ffmpeg", *o); err != nil {
 				fmt.Printf("\nerror extracting audio: %v", err)
 			} else {
 				fmt.Printf("\n%s Done!", s)
 			}
-			wg.Done()
 		}(v)
 	}
 
 	fmt.Print("\n")
 }
 
-func scan(dir string, c chan string, exts string) error {
+func scan(wg *sync.WaitGroup, dir string, c chan string, exts string) error {
 	err := filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
 		if !info.IsDir() && strings.ContainsAny(info.Name(), exts) {
+			wg.Add(1)
 			c <- path.Join(dir, info.Name())
 		}
 
@@ -73,7 +72,8 @@ func scan(dir string, c chan string, exts string) error {
 	return nil
 }
 
-func extract(s string, command, dir string) error {
+func extract(wg *sync.WaitGroup, s string, command, dir string) error {
+	defer wg.Done()
 	if s != "" {
 		ext := filepath.Ext(s)
 		name := filepath.Base(s)

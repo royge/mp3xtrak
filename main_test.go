@@ -19,7 +19,6 @@ func TestScanBuffered(t *testing.T) {
 		t.Fatalf("error creating temp directory: %v", err)
 	}
 	c := make(chan string, 5)
-	// defer close(c)
 
 	expected := []string{}
 	actual := []string{}
@@ -29,10 +28,14 @@ func TestScanBuffered(t *testing.T) {
 		expected = append(expected, f.Name())
 	}
 
+	var wg sync.WaitGroup
+
 	go func() {
-		if err := scan(dir, c, "test"); err != nil {
+		if err := scan(&wg, dir, c, "test"); err != nil {
 			t.Fatalf("error scanning directory: %v", err)
 		}
+
+		wg.Wait()
 		close(c)
 	}()
 
@@ -40,6 +43,7 @@ func TestScanBuffered(t *testing.T) {
 		if s != "" {
 			actual = append(actual, s)
 		}
+		wg.Done()
 	}
 
 	sort.Strings(expected)
@@ -50,49 +54,10 @@ func TestScanBuffered(t *testing.T) {
 	}
 }
 
-func TestScanUnbuffered(t *testing.T) {
-	t.Parallel()
-
-	dir, err := ioutil.TempDir("", "")
-	if err != nil {
-		t.Fatalf("error creating temp directory: %v", err)
-	}
-	c := make(chan string)
-
-	expected := []string{}
-	actual := []string{}
-
-	for i := 0; i < 5; i++ {
-		f, _ := ioutil.TempFile(dir, "test.")
-		expected = append(expected, f.Name())
-		f.Close()
-	}
-
-	go func() {
-		if err := scan(dir, c, "test"); err != nil {
-			t.Fatalf("error scanning directory: %v", err)
-		}
-		close(c)
-	}()
-
-	for s := range c {
-		if s != "" {
-			actual = append(actual, s)
-		}
-	}
-
-	sort.Strings(expected)
-	sort.Strings(actual)
-
-	if !reflect.DeepEqual(expected, actual) {
-		t.Fatalf("expected to be equal, got %v and %v", expected, actual)
-	}
-}
-
 func TestExtract(t *testing.T) {
 	t.Parallel()
 
-	c := make(chan string)
+	c := make(chan string, 5)
 	dir, err := ioutil.TempDir("", "")
 	if err != nil {
 		t.Fatalf("error creating temp directory: %v", err)
@@ -114,7 +79,7 @@ func TestExtract(t *testing.T) {
 	var wg sync.WaitGroup
 
 	go func() {
-		if err := scan(dir, c, "test"); err != nil {
+		if err := scan(&wg, dir, c, "test"); err != nil {
 			t.Fatalf("error scanning directory: %v", err)
 		}
 
@@ -123,13 +88,11 @@ func TestExtract(t *testing.T) {
 	}()
 
 	for s := range c {
-		wg.Add(1)
 		go func(s string) {
 			// we use `cp` command instead of `ffmpeg`
-			if err := extract(s, "cp", outDir); err != nil {
+			if err := extract(&wg, s, "cp", outDir); err != nil {
 				t.Fatalf("expected no error, got %v", err)
 			}
-			wg.Done()
 		}(s)
 	}
 
